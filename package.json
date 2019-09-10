@@ -1,0 +1,22 @@
+{
+  "name": "post-message-p2p",
+  "version": "0.0.0",
+  "description": "P2P reliable and semi-secure messaging between contexts using the postMessage API.",
+  "main": "index.js",
+  "scripts": {
+    "compile:esm": "tsc --outDir dist/esm --target es2015 --module es2015",
+    "test": "tslint --project ."
+  },
+  "keywords": [
+    "postmessage",
+    "post",
+    "message",
+    "json"
+  ],
+  "author": "Martin Jurča <martin.jurca@firma.seznam.cz>",
+  "license": "ISC",
+  "devDependencies": {
+    "tslint": "^5.20.0",
+    "typescript": "^3.6.2"
+  }
+}
