@@ -10,6 +10,10 @@
     "build": "rm -rf dist && npm test && npm run compile:cjs && npm run compile:esm",
     "test": "tslint --project ."
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jurca/post-message-p2p.git"
+  },
   "keywords": [
     "postmessage",
     "post",
@@ -18,6 +22,9 @@
   ],
   "author": "Martin Jurča <martin.jurca@firma.seznam.cz>",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jurca/post-message-p2p/issues"
+  },
   "devDependencies": {
     "tslint": "^5.20.0",
     "typescript": "^3.6.2"
