@@ -25,6 +25,7 @@
   "bugs": {
     "url": "https://github.com/jurca/post-message-p2p/issues"
   },
+  "homepage": "https://github.com/jurca/post-message-p2p#readme",
   "devDependencies": {
     "tslint": "^5.20.0",
     "typescript": "^3.6.2"
