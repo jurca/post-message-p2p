@@ -1,5 +1,5 @@
 {
-  "name": "post-message-p2p",
+  "name": "@jurca/post-message-p2p",
   "version": "0.0.0",
   "description": "P2P reliable and semi-secure messaging between contexts using the postMessage API.",
   "main": "index.js",
