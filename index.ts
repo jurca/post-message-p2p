@@ -3,7 +3,7 @@ interface IPostMessageImplementor {
 }
 
 interface IConnectOptions {
-  secret: unknown
+  channel: unknown
   timeout?: number
   origin?: string
   handshakeRetries?: number
@@ -13,7 +13,7 @@ interface IConnectOptions {
 interface IConfirmationCallbackMap {
   [messageId: string]: {
     callback: () => void,
-    secret: unknown,
+    channel: unknown,
     messageTarget: IPostMessageImplementor,
     targetOrigin: string,
   }
@@ -57,15 +57,15 @@ export function connect(target: IPostMessageImplementor, options: IConnectOption
         delete messageReceivedConfirmationCallbacks[messageId]
         resultResolver!()
       },
+      channel: options.channel,
       messageTarget: target,
-      secret: options.secret,
       targetOrigin: origin,
     }
     target.postMessage(
       {
         ...messageContent,
+        channel: options.channel,
         messageId,
-        secret: options.secret,
       },
       origin,
       transferable,
@@ -109,14 +109,14 @@ export function connect(target: IPostMessageImplementor, options: IConnectOption
   })
 }
 
-export function listen(secret: unknown, origins: string[], messageListener: MessageListener): void {
+export function listen(channel: unknown, origins: string[], messageListener: MessageListener): void {
   addEventListener('message', (event: MessageEvent) => {
     const {data, origin, source} = event
     if (origins.length && origins.indexOf(origin) === -1) {
       return
     }
 
-    if (!source || !data || typeof data.messageId !== 'string' || data.secret !== secret) {
+    if (!source || !data || typeof data.messageId !== 'string' || data.channel !== channel) {
       return
     }
 
@@ -129,9 +129,9 @@ export function listen(secret: unknown, origins: string[], messageListener: Mess
     }
 
     (event.source as IPostMessageImplementor).postMessage({
+      channel,
       messageId: data.messageId,
       received: true,
-      secret,
     }, origin)
   })
 }
@@ -146,7 +146,7 @@ addEventListener('message', (event: MessageEvent) => {
   if (
     source !== callbackInfo.messageTarget ||
     origin !== callbackInfo.targetOrigin ||
-    data.secret !== callbackInfo.secret
+    data.channel !== callbackInfo.channel
   ) {
     return
   }
