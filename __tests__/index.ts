@@ -104,6 +104,44 @@ describe('P2P postMessage agent', () => {
 
       throw new Error('The handshake should have been rejected')
     })
+
+    it('should allow sending any data', async () => {
+      const circular = {
+        data: {} as {root?: unknown},
+        num: 123,
+      }
+      circular.data.root = circular
+
+      const mockTarget = {
+        postMessage: jest.fn(),
+      }
+      const connectionPromise = connect(mockTarget, {
+        channel: 'foo',
+      })
+      messageConfirmationListener({
+        data: {
+          channel: 'foo',
+          messageId: mockTarget.postMessage.mock.calls[0][0].messageId,
+          received: true,
+        },
+        origin: '*',
+        source: mockTarget,
+      })
+
+      const connection = await connectionPromise
+      connection(circular, [new ArrayBuffer(4)])
+
+      expect(mockTarget.postMessage).toHaveBeenCalledTimes(2)
+      expect(mockTarget.postMessage).toHaveBeenLastCalledWith(
+        {
+          channel: 'foo',
+          data: circular,
+          messageId: mockTarget.postMessage.mock.calls[1][0].messageId,
+        },
+        '*',
+        [new ArrayBuffer(4)],
+      )
+    })
   })
 
   afterEach(() => {
