@@ -62,7 +62,7 @@ export function connect(target: IPostMessageImplementor, options: IConnectOption
     })
 
     messageReceivedConfirmationCallbacks[messageId] = {
-      callback: () => {
+      callback() {
         clearTimeout(messageTimeoutId!)
         delete messageReceivedConfirmationCallbacks[messageId]
         resultResolver!()
