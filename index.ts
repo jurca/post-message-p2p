@@ -58,7 +58,7 @@ export function connect(target: IPostMessageImplementor, options: IConnectOption
         const timeoutError = new Error(`The message timed out after ${timeout} milliseconds`)
         timeoutError.name = 'TimeoutError'
         reject(timeoutError)
-      })
+      }, timeout)
     })
 
     messageReceivedConfirmationCallbacks[messageId] = {
