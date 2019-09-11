@@ -19,6 +19,11 @@ interface IConfirmationCallbackMap {
   }
 }
 
+interface IAgentOptions extends IConnectOptions {
+  peer: IPostMessageImplementor
+  onMessage(data: unknown): void
+}
+
 type Client = (data: unknown, transferable?: Transferable[]) => Promise<unknown>
 type MessageListener = (data: unknown) => unknown
 
@@ -29,6 +34,11 @@ const DEFAULT_HANDSHAKE_RETRY_DELAY = 500 // milliseconds
 const HOST_ID = Date.now().toString(36)
 let lastClientId = MIN_SAFE_INTEGER
 const messageReceivedConfirmationCallbacks: IConfirmationCallbackMap = {}
+
+export function createAgent(options: IAgentOptions): Promise<Client> {
+  listen(options.channel, options.origin ? [options.origin] : [], options.onMessage)
+  return connect(options.peer, options)
+}
 
 export function connect(target: IPostMessageImplementor, options: IConnectOptions): Promise<Client> {
   const origin = options.origin || '*'
