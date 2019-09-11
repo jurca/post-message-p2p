@@ -23,6 +23,7 @@
     "inlineSources": true
   },
   "exclude": [
+    "__tests__",
     "dist"
   ]
 }
