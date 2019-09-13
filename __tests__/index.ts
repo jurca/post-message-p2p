@@ -1,4 +1,4 @@
-import {connect} from '../index'
+import {connect, listen} from '../index'
 
 describe('P2P postMessage agent', () => {
   const messageConfirmationListener = (addEventListener as any).calls[0][1]
@@ -140,6 +140,187 @@ describe('P2P postMessage agent', () => {
         },
         '*',
         [new ArrayBuffer(4)],
+      )
+    })
+  })
+
+  describe('listen', () => {
+    it('should register a message event listener', () => {
+      const channel = `channel ${Math.random()}`
+      listen(channel, [], () => undefined)
+      expect((addEventListener as any).calls.length).toBe(1)
+      const [callArgs] = (addEventListener as any).calls
+      expect(callArgs.length).toBe(2)
+      expect(callArgs[0]).toBe('message')
+      expect(typeof callArgs[1]).toBe('function')
+      expect(callArgs[1].length).toBe(1)
+    })
+
+    it('should ignore an incoming message if the message\'s origin does not match the specified origins', () => {
+      const callback = jest.fn()
+      listen('foo', ['foo.bar.com'], callback)
+      const listener = (addEventListener as any).calls[0][1]
+      const sourcePostMessage = jest.fn()
+      listener({
+        data: {
+          channel: 'foo',
+          handshake: 'abc',
+          messageId: 'abc,',
+        },
+        origin: 'baz.bar.com',
+        source: {
+          postMessage: sourcePostMessage,
+        },
+      })
+      expect(callback).not.toHaveBeenCalled()
+      expect(sourcePostMessage).not.toHaveBeenCalled()
+    })
+
+    it(
+      'should ignore an incoming message if it has no source, no data, is missing message ID or has other channel ID',
+      () => {
+        const callback = jest.fn()
+        listen('foo', ['foo.bar.com'], callback)
+        const listener = (addEventListener as any).calls[0][1]
+        const sourcePostMessage = jest.fn()
+        listener({
+          data: {
+            channel: 'foo',
+            handshake: 'abc',
+            messageId: 'abc,',
+          },
+          origin: 'foo.bar.com',
+        })
+        listener({
+          origin: 'foo.bar.com',
+          source: {
+            postMessage: sourcePostMessage,
+          },
+        })
+        listener({
+          data: {
+            channel: 'foo',
+            handshake: 'abc',
+            messageId: 123,
+          },
+          origin: 'foo.bar.com',
+          source: {
+            postMessage: sourcePostMessage,
+          },
+        })
+        listener({
+          data: {
+            channel: 'bar',
+            handshake: 'abc',
+            messageId: 'abc,',
+          },
+          origin: 'foo.bar.com',
+          source: {
+            postMessage: sourcePostMessage,
+          },
+        })
+        expect(callback).not.toHaveBeenCalled()
+        expect(sourcePostMessage).not.toHaveBeenCalled()
+      },
+    )
+
+    it('should ignore an incoming message if it contains neither the handshake or data entry', () => {
+      const callback = jest.fn()
+      listen('foo', ['foo.bar.com'], callback)
+      const listener = (addEventListener as any).calls[0][1]
+      const sourcePostMessage = jest.fn()
+      listener({
+        data: {
+          channel: 'foo',
+          messageId: 'abc,',
+        },
+        origin: 'foo.bar.com',
+        source: {
+          postMessage: sourcePostMessage,
+        },
+      })
+      expect(callback).not.toHaveBeenCalled()
+      expect(sourcePostMessage).not.toHaveBeenCalled()
+    })
+
+    it('should reply to a handshake message without invoking the callback', () => {
+      const callback = jest.fn()
+      listen('foo', ['foo.bar.com'], callback)
+      const listener = (addEventListener as any).calls[0][1]
+      const sourcePostMessage = jest.fn()
+      listener({
+        data: {
+          channel: 'foo',
+          handshake: 'abc',
+          messageId: 'abc,',
+        },
+        origin: 'foo.bar.com',
+        source: {
+          postMessage: sourcePostMessage,
+        },
+      })
+      expect(callback).not.toHaveBeenCalled()
+      expect(sourcePostMessage).toHaveBeenCalledTimes(1)
+      expect(sourcePostMessage).toHaveBeenLastCalledWith(
+        {
+          channel: 'foo',
+          messageId: 'abc,',
+          received: true,
+        },
+        'foo.bar.com',
+      )
+    })
+
+    it('should invoked the registered callback with the message\'s data payload and reply to the message', () => {
+      const callback = jest.fn()
+      listen('foo', ['foo.bar.com', 'baz.com'], callback)
+      const listener = (addEventListener as any).calls[0][1]
+      const data = Object.freeze({foo: `foo ${Math.random()}`})
+      const sourcePostMessage = jest.fn()
+      listener({
+        data: {
+          channel: 'foo',
+          data,
+          messageId: 'abc,',
+        },
+        origin: 'foo.bar.com',
+        source: {
+          postMessage: sourcePostMessage,
+        },
+      })
+      expect(callback).toHaveBeenCalledTimes(1)
+      expect(callback).toHaveBeenLastCalledWith(data)
+      expect(sourcePostMessage).toHaveBeenCalledTimes(1)
+      expect(sourcePostMessage).toHaveBeenLastCalledWith(
+        {
+          channel: 'foo',
+          messageId: 'abc,',
+          received: true,
+        },
+        'foo.bar.com',
+      )
+
+      listener({
+        data: {
+          channel: 'foo',
+          data: [1, 2, 4],
+          messageId: 'abcd',
+        },
+        origin: 'baz.com',
+        source: {
+          postMessage: sourcePostMessage,
+        },
+      })
+      expect(callback).toHaveBeenCalledTimes(2)
+      expect(callback).toHaveBeenLastCalledWith([1, 2, 4])
+      expect(sourcePostMessage).toHaveBeenCalledTimes(2)
+      expect(sourcePostMessage).toHaveBeenLastCalledWith(
+        {
+          channel: 'foo',
+          messageId: 'abcd',
+          received: true,
+        },
+        'baz.com',
       )
     })
   })
