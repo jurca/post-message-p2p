@@ -25,7 +25,7 @@ interface IAgentOptions extends IConnectOptions {
 }
 
 type Client = (data: unknown, transferable?: Transferable[]) => Promise<unknown>
-type MessageListener = (data: unknown) => unknown
+type MessageListener = (data: unknown) => void
 
 const MIN_SAFE_INTEGER = (Number as any).MIN_SAFE_INTEGER || -9007199254740991
 const DEFAULT_MESSAGE_CONFIRMATION_TIMEOUT = 10_000 // milliseconds
