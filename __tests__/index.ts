@@ -1,4 +1,4 @@
-import {connect, listen} from '../index'
+import {connect, createAgent, listen} from '../index'
 
 describe('P2P postMessage agent', () => {
   const messageConfirmationListener = (addEventListener as any).calls[0][1]
@@ -322,6 +322,78 @@ describe('P2P postMessage agent', () => {
         },
         'baz.com',
       )
+    })
+  })
+
+  describe('createAgent', () => {
+    it('should connect to the provided peer and listen for incoming messages', () => {
+      const channel = `channel ${Math.random()}`
+      const origin = `domain.${Math.random()}.dev`
+      const peer = {
+        postMessage: jest.fn(),
+      }
+      const onMessage = jest.fn()
+      const connectionPromise = createAgent({
+        channel,
+        onMessage,
+        origin,
+        peer,
+      })
+
+      expect((addEventListener as any).calls.length).toBe(1)
+      const addListenerCall = (addEventListener as any).calls[0]
+      expect(addListenerCall.length).toBe(2)
+      expect(addListenerCall[0]).toBe('message')
+      expect(typeof addListenerCall[1]).toBe('function')
+      expect(addListenerCall[1].length).toBe(1)
+      const messageListener = addListenerCall[1]
+      const mockMessageSource = {
+        postMessage: jest.fn(),
+      }
+      messageListener({
+        data: {
+          channel,
+          data: null,
+          messageId: 'abc',
+        },
+        origin: 'other.origin.com',
+        source: mockMessageSource,
+      })
+      expect(onMessage).not.toHaveBeenCalled()
+      expect(mockMessageSource.postMessage).not.toHaveBeenCalled()
+      messageListener({
+        data: {
+          channel,
+          data: null,
+          messageId: 'abc',
+        },
+        origin,
+        source: mockMessageSource,
+      })
+      expect(onMessage).toHaveBeenCalledTimes(1)
+      expect(mockMessageSource.postMessage).toHaveBeenCalledTimes(1)
+
+      expect(peer.postMessage).toHaveBeenCalledTimes(1)
+      expect(peer.postMessage).toHaveBeenLastCalledWith(
+        {
+          channel,
+          handshake: peer.postMessage.mock.calls[0][0].handshake,
+          messageId: peer.postMessage.mock.calls[0][0].messageId,
+        },
+        origin,
+        undefined,
+      )
+      messageConfirmationListener({
+        data: {
+          channel,
+          messageId: peer.postMessage.mock.calls[0][0].messageId,
+          received: true,
+        },
+        origin,
+        source: peer,
+      })
+
+      return connectionPromise
     })
   })
 
