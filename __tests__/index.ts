@@ -78,6 +78,100 @@ describe('P2P postMessage agent', () => {
       return connectionPromise
     })
 
+    it('should reject non-integer, zero or negative message timeout', async () => {
+      const timeout1 = 123 + Math.random()
+      let connect1Succeeded = false
+      try {
+        await connect({postMessage: jest.fn()}, {channel: 1, timeout: timeout1})
+        connect1Succeeded = true
+      } catch (connectionError) {
+        expect(connectionError.name).toBe('TypeError')
+        expect(connectionError.message).toMatch(` ${timeout1} `)
+      }
+      expect(connect1Succeeded).toBe(false)
+
+      const timeout2 = 0
+      let connect2Succeeded = false
+      try {
+        await connect({postMessage: jest.fn()}, {channel: 1, timeout: timeout2})
+        connect2Succeeded = true
+      } catch (connectionError) {
+        expect(connectionError.name).toBe('TypeError')
+        expect(connectionError.message).toMatch(` ${timeout2} `)
+      }
+      expect(connect2Succeeded).toBe(false)
+
+      const timeout3 = -Math.floor(Math.random() * 1000)
+      let connect3Succeeded = false
+      try {
+        await connect({postMessage: jest.fn()}, {channel: 1, timeout: timeout3})
+        connect3Succeeded = true
+      } catch (connectionError) {
+        expect(connectionError.name).toBe('TypeError')
+        expect(connectionError.message).toMatch(` ${timeout3} `)
+      }
+      expect(connect3Succeeded).toBe(false)
+    })
+
+    it('should reject non-integer or negative handshake retries count', async () => {
+      const timeout1 = 123 + Math.random()
+      let connect1Succeeded = false
+      try {
+        await connect({postMessage: jest.fn()}, {channel: 1, handshakeRetries: timeout1})
+        connect1Succeeded = true
+      } catch (connectionError) {
+        expect(connectionError.name).toBe('TypeError')
+        expect(connectionError.message).toMatch(` ${timeout1} `)
+      }
+      expect(connect1Succeeded).toBe(false)
+
+      const timeout2 = -Math.floor(Math.random() * 1000)
+      let connect2Succeeded = false
+      try {
+        await connect({postMessage: jest.fn()}, {channel: 1, handshakeRetries: timeout2})
+        connect2Succeeded = true
+      } catch (connectionError) {
+        expect(connectionError.name).toBe('TypeError')
+        expect(connectionError.message).toMatch(` ${timeout2} `)
+      }
+      expect(connect2Succeeded).toBe(false)
+    })
+
+    it('should reject non-integer, zero or negative handshake retry delay', async () => {
+      const timeout1 = 123 + Math.random()
+      let connect1Succeeded = false
+      try {
+        await connect({postMessage: jest.fn()}, {channel: 1, handshakeRetryDelay: timeout1})
+        connect1Succeeded = true
+      } catch (connectionError) {
+        expect(connectionError.name).toBe('TypeError')
+        expect(connectionError.message).toMatch(` ${timeout1} `)
+      }
+      expect(connect1Succeeded).toBe(false)
+
+      const timeout2 = 0
+      let connect2Succeeded = false
+      try {
+        await connect({postMessage: jest.fn()}, {channel: 1, handshakeRetryDelay: timeout2})
+        connect2Succeeded = true
+      } catch (connectionError) {
+        expect(connectionError.name).toBe('TypeError')
+        expect(connectionError.message).toMatch(` ${timeout2} `)
+      }
+      expect(connect2Succeeded).toBe(false)
+
+      const timeout3 = -Math.floor(Math.random() * 1000)
+      let connect3Succeeded = false
+      try {
+        await connect({postMessage: jest.fn()}, {channel: 1, handshakeRetryDelay: timeout3})
+        connect3Succeeded = true
+      } catch (connectionError) {
+        expect(connectionError.name).toBe('TypeError')
+        expect(connectionError.message).toMatch(` ${timeout3} `)
+      }
+      expect(connect3Succeeded).toBe(false)
+    })
+
     it('should reject the attempt if the handshake fails', async () => {
       const mockTarget = {
         postMessage: jest.fn(),
@@ -99,6 +193,7 @@ describe('P2P postMessage agent', () => {
       try {
         await connectionPromise
       } catch (error) {
+        expect(error.message).toMatch('handshake failed after 2 attempts')
         return
       }
 

@@ -42,8 +42,29 @@ export function createAgent(options: IAgentOptions): Promise<Client> {
 
 export function connect(target: IPostMessageImplementor, options: IConnectOptions): Promise<Client> {
   const origin = options.origin || '*'
-  const timeout = options.timeout || DEFAULT_MESSAGE_CONFIRMATION_TIMEOUT
   const clientId = `${HOST_ID}:${(++lastClientId).toString(36)}`
+  const timeout = typeof options.timeout === 'number' ? options.timeout : DEFAULT_MESSAGE_CONFIRMATION_TIMEOUT
+  const handshakeRetries = (
+    typeof options.handshakeRetries === 'number' ? options.handshakeRetries : DEFAULT_HANDSHAKE_RETRIES
+  )
+  const handshakeRetryDelay = (
+    typeof options.handshakeRetryDelay === 'number' ? options.handshakeRetryDelay : DEFAULT_HANDSHAKE_RETRY_DELAY
+  )
+  if (timeout !== Math.floor(timeout) || timeout <= 0) {
+    throw new TypeError(
+      `The timeout option must be a positive integer, ${timeout} was provided`,
+    )
+  }
+  if (handshakeRetries !== Math.floor(handshakeRetries) || handshakeRetries < 0) {
+    throw new TypeError(
+      `The handshakeRetries option must be a non-negative integer, ${handshakeRetries} was provided`,
+    )
+  }
+  if (handshakeRetryDelay !== Math.floor(handshakeRetryDelay) || handshakeRetryDelay <= 0) {
+    throw new TypeError(
+      `The handshakeRetryDelay option must be a positive integer, ${handshakeRetryDelay} was provided`,
+    )
+  }
 
   let lastMessageId = MIN_SAFE_INTEGER
 
@@ -89,22 +110,9 @@ export function connect(target: IPostMessageImplementor, options: IConnectOption
   }
 
   return new Promise((resolve, reject) => {
-    const handshakeRetries = options.handshakeRetries || DEFAULT_HANDSHAKE_RETRIES
-    const handshakeRetryDelay = options.handshakeRetryDelay || DEFAULT_HANDSHAKE_RETRY_DELAY
-    if (handshakeRetries !== Math.floor(handshakeRetries) || handshakeRetries < 0) {
-      throw new TypeError(
-        `The handshakeRetries option must be a non-negative integer, ${handshakeRetries} was provided`,
-      )
-    }
-    if (handshakeRetryDelay !== Math.floor(handshakeRetryDelay) || handshakeRetryDelay <= 0) {
-      throw new TypeError(
-        `The handshakeRetryDelay option must be a positive integer, ${handshakeRetryDelay} was provided`,
-      )
-    }
-
     attemptHandshake()
-
     let retriesLeft = handshakeRetries
+
     function attemptHandshake() {
       connection({handshake: clientId}).then(() => {
         resolve(client)
