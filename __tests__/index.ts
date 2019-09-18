@@ -142,6 +142,114 @@ describe('P2P postMessage agent', () => {
         [new ArrayBuffer(4)],
       )
     })
+
+    it(
+      'should use the base-36 Number.MIN_SAFE_INTEGER + 1 value as message ID for the first message and increment ' +
+      'from that',
+      async () => {
+        const peer = {
+          postMessage: jest.fn(),
+        }
+        const connectionPromise = connect(peer, {
+          channel: 'foo',
+        })
+        expect(peer.postMessage.mock.calls[0][0].messageId).toMatch(/^[0-9a-z]+:-[0-9a-z]+:-2gosa7pa2gu$/)
+
+        jest.advanceTimersByTime(10_000)
+        await Promise.resolve().then(() => null) // wait for the catch callback of the handshake initiator to be invoked
+        jest.advanceTimersByTime(500)
+        expect(peer.postMessage.mock.calls[1][0].messageId).toMatch(/^[0-9a-z]+:-[0-9a-z]+:-2gosa7pa2gt$/)
+
+        jest.advanceTimersByTime(10_000)
+        await Promise.resolve().then(() => null) // wait for the catch callback of the handshake initiator to be invoked
+        jest.advanceTimersByTime(500)
+        expect(peer.postMessage.mock.calls[2][0].messageId).toMatch(/^[0-9a-z]+:-[0-9a-z]+:-2gosa7pa2gs$/)
+
+        messageConfirmationListener({
+          data: {
+            channel: 'foo',
+            messageId: peer.postMessage.mock.calls[2][0].messageId,
+            received: true,
+          },
+          origin: '*',
+          source: peer,
+        })
+
+        return connectionPromise
+      },
+    )
+
+    it('should use base-36 client IDs incremented with every new client', async () => {
+      const peer1 = {
+        postMessage: jest.fn(),
+      }
+      const connectionPromise1 = connect(peer1, {
+        channel: 'foo1',
+      })
+      const [, clientId1] = peer1.postMessage.mock.calls[0][0].messageId.split(':')
+      messageConfirmationListener({
+        data: {
+          channel: 'foo1',
+          messageId: peer1.postMessage.mock.calls[0][0].messageId,
+          received: true,
+        },
+        origin: '*',
+        source: peer1,
+      })
+
+      const peer2 = {
+        postMessage: jest.fn(),
+      }
+      const connectionPromise2 = connect(peer2, {
+        channel: 'foo2',
+      })
+      const [, clientId2] = peer2.postMessage.mock.calls[0][0].messageId.split(':')
+      messageConfirmationListener({
+        data: {
+          channel: 'foo2',
+          messageId: peer2.postMessage.mock.calls[0][0].messageId,
+          received: true,
+        },
+        origin: '*',
+        source: peer2,
+      })
+
+      await Promise.all([connectionPromise1, connectionPromise2])
+
+      expect(parseInt(clientId1, 36)).toBeLessThan(parseInt(clientId2, 36))
+    })
+
+    it('should reject the message promise with a TimeoutError if the peer does not confirms receiving it', async () => {
+      const peer = {
+        postMessage: jest.fn(),
+      }
+      const timeout = Math.floor(Math.random() * 1000) + 1000
+      const connectionPromise = connect(peer, {
+        channel: 'foo',
+        timeout,
+      })
+      messageConfirmationListener({
+        data: {
+          channel: 'foo',
+          messageId: peer.postMessage.mock.calls[0][0].messageId,
+          received: true,
+        },
+        origin: '*',
+        source: peer,
+      })
+
+      const sendMessage = await connectionPromise
+      try {
+        const messagePromise = sendMessage(null)
+        jest.advanceTimersByTime(timeout)
+        await messagePromise
+        return Promise.reject(new Error('The message sending promise should have been rejected with a timeout error'))
+      } catch (timeoutError) {
+        expect(timeoutError.name).toBe('TimeoutError')
+        expect(timeoutError.message).toMatch(`${timeout}`)
+        return null
+      }
+    })
   })
 
   describe('listen', () => {
