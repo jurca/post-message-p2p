@@ -155,7 +155,7 @@ addEventListener('message', (event: MessageEvent) => {
   const callbackInfo = messageReceivedConfirmationCallbacks[data.messageId]
   if (
     source !== callbackInfo.messageTarget ||
-    origin !== callbackInfo.targetOrigin ||
+    (callbackInfo.targetOrigin !== '*' && origin !== callbackInfo.targetOrigin) ||
     data.channel !== callbackInfo.channel
   ) {
     return

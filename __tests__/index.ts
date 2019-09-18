@@ -395,6 +395,42 @@ describe('P2P postMessage agent', () => {
 
       return connectionPromise
     })
+
+    it('should use the wildcard origin by default', () => {
+      const channel = `channel ${Math.random()}`
+      const peer = {
+        postMessage: jest.fn(),
+      }
+      const onMessage = jest.fn()
+      const agentPromise = createAgent({
+        channel,
+        onMessage,
+        peer,
+      })
+
+      expect(peer.postMessage).toHaveBeenCalledTimes(1)
+      expect(peer.postMessage).toHaveBeenLastCalledWith(
+        {
+          channel,
+          handshake: peer.postMessage.mock.calls[0][0].handshake,
+          messageId: peer.postMessage.mock.calls[0][0].messageId,
+        },
+        '*',
+        undefined,
+      )
+      // const listenCallback = (addEventListener as any).calls[0][1]
+      messageConfirmationListener({
+        data: {
+          channel,
+          messageId: peer.postMessage.mock.calls[0][0].messageId,
+          received: true,
+        },
+        origin: `any random origin ${Math.random()}`,
+        source: peer,
+      })
+
+      return agentPromise
+    })
   })
 
   afterEach(() => {
