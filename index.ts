@@ -2,7 +2,7 @@ interface IPostMessageImplementor {
   postMessage: typeof postMessage
 }
 
-interface IConnectOptions {
+export interface IConnectOptions {
   channel: unknown
   timeout?: number
   origin?: string
@@ -19,7 +19,7 @@ interface IConfirmationCallbackMap {
   }
 }
 
-interface IAgentOptions extends IConnectOptions {
+export interface IAgentOptions extends IConnectOptions {
   peer: IPostMessageImplementor
   onMessage(data: unknown): void
 }
