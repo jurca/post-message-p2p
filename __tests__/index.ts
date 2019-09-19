@@ -636,6 +636,126 @@ describe('P2P postMessage agent', () => {
     })
   })
 
+  describe('message confirmation listener', () => {
+    it('should not invoke the callback if the received message is malformed', async () => {
+      const peer = {
+        postMessage: jest.fn(),
+      }
+      const timeout = 10
+
+      const connectionPromise = connect(peer, {
+        channel: 0,
+        timeout,
+      })
+      messageConfirmationListener({
+        data: {
+          channel: 0,
+          messageId: peer.postMessage.mock.calls[0][0].messageId,
+          received: true,
+        },
+        origin: '',
+        source: peer,
+      })
+
+      const sendMessage = await connectionPromise
+
+      const malformedMessages = [
+        {
+          data: null,
+          origin: '',
+          source: peer,
+        },
+        {
+          data: '{"messageId":"abc"}',
+          origin: '',
+          source: peer,
+        },
+        {
+          data: {
+            channel: 0,
+            messageId: 1,
+            received: true,
+          },
+          origin: '',
+          source: peer,
+        },
+        {
+          data: {
+            channel: 0,
+            messageId: `${Date.now().toString(36)}:${(-1000).toString(36)}:${(-1000).toString(36)}`,
+            received: false,
+          },
+          origin: '',
+          source: peer,
+        },
+        {
+          data: {
+            channel: {foo: 'bar'},
+            messageId: `${Date.now().toString(36)}:${(-1000).toString(36)}:${(-1000).toString(36)}`,
+            received: true,
+          },
+          origin: '',
+          source: peer,
+        },
+        {
+          data: {
+            channel: 0,
+            messageId: `${Date.now().toString(36)}:${(-1000).toString(36)}:${(-1000).toString(36)}`,
+            received: true,
+          },
+          origin: '',
+          source: null,
+        },
+      ]
+      expect(() => {
+        for (const message of malformedMessages) {
+          messageConfirmationListener(message)
+        }
+      }).not.toThrow()
+
+      const postMessageCalls = peer.postMessage.mock.calls
+      const confirmationPromise1 = sendMessage(null)
+      messageConfirmationListener({
+        data: {
+          channel: 1,
+          messageId: postMessageCalls[postMessageCalls.length - 1][0].messageId,
+          received: true,
+        },
+        origin: '',
+        source: peer,
+      })
+      const confirmationPromise2 = sendMessage(null)
+      messageConfirmationListener({
+        data: {
+          channel: 1,
+          messageId: postMessageCalls[postMessageCalls.length - 1][0].messageId,
+          received: true,
+        },
+        origin: '',
+        source: {postMessage: jest.fn()},
+      })
+      jest.advanceTimersByTime(timeout)
+      await Promise.resolve().then(() => null)
+
+      let firstCallSucceeded
+      try {
+        await confirmationPromise1
+        firstCallSucceeded = true
+      } catch {
+        firstCallSucceeded = false
+      }
+      expect(firstCallSucceeded).toBe(false)
+      let secondCallSucceeded
+      try {
+        await confirmationPromise2
+        secondCallSucceeded = true
+      } catch {
+        secondCallSucceeded = false
+      }
+      expect(secondCallSucceeded).toBe(false)
+    })
+  })
+
   afterEach(() => {
     ;(addEventListener as any).calls.splice(0) // tslint:disable-line align semicolon whitespace
     ;(postMessage as any).calls.splice(0) // tslint:disable-line align whitespace

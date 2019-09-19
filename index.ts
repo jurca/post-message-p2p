@@ -156,7 +156,12 @@ export function listen(channel: unknown, origins: string[], messageListener: Mes
 
 addEventListener('message', (event: MessageEvent) => {
   const {data, origin, source} = event
-  if (!data || !data.messageId || !messageReceivedConfirmationCallbacks[data.messageId] || data.received !== true) {
+  if (
+    !data ||
+    typeof data.messageId !== 'string' ||
+    !messageReceivedConfirmationCallbacks[data.messageId] ||
+    data.received !== true
+  ) {
     return
   }
 
