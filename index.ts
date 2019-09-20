@@ -68,11 +68,11 @@ export function connect(target: IPostMessageImplementor, options: IConnectOption
 
   let lastMessageId = MIN_SAFE_INTEGER
 
-  const connection = (messageContent: object, transferable?: Transferable[]): Promise<unknown> => {
+  const connection = (messageContent: object, transferable?: Transferable[]): Promise<void> => {
     const messageId = `${clientId}:${(++lastMessageId).toString(36)}`
     let resultResolver: null | (() => void) = null
     let messageTimeoutId: null | number = null
-    const resultPromise = new Promise((resolve, reject) => {
+    const resultPromise = new Promise<void>((resolve, reject) => {
       resultResolver = resolve
       messageTimeoutId = setTimeout(() => {
         delete messageReceivedConfirmationCallbacks[messageId]
@@ -105,7 +105,7 @@ export function connect(target: IPostMessageImplementor, options: IConnectOption
     return resultPromise
   }
 
-  const client: Client = (data: unknown, transferable?: Transferable[]): Promise<unknown> => {
+  const client: Client = (data: unknown, transferable?: Transferable[]): Promise<void> => {
     return connection({data}, transferable)
   }
 
