@@ -480,6 +480,9 @@ describe('P2P postMessage agent', () => {
       const listener = (addEventListener as any).calls[0][1]
       const data = Object.freeze({foo: `foo ${Math.random()}`})
       const sourcePostMessage = jest.fn()
+      const source = {
+        postMessage: sourcePostMessage,
+      }
       listener({
         data: {
           channel: 'foo',
@@ -487,12 +490,10 @@ describe('P2P postMessage agent', () => {
           messageId: 'abc,',
         },
         origin: 'foo.bar.com',
-        source: {
-          postMessage: sourcePostMessage,
-        },
+        source,
       })
       expect(callback).toHaveBeenCalledTimes(1)
-      expect(callback).toHaveBeenLastCalledWith(data)
+      expect(callback).toHaveBeenLastCalledWith(data, source, 'foo.bar.com')
       expect(sourcePostMessage).toHaveBeenCalledTimes(1)
       expect(sourcePostMessage).toHaveBeenLastCalledWith(
         {
@@ -510,12 +511,10 @@ describe('P2P postMessage agent', () => {
           messageId: 'abcd',
         },
         origin: 'baz.com',
-        source: {
-          postMessage: sourcePostMessage,
-        },
+        source,
       })
       expect(callback).toHaveBeenCalledTimes(2)
-      expect(callback).toHaveBeenLastCalledWith([1, 2, 4])
+      expect(callback).toHaveBeenLastCalledWith([1, 2, 4], source, 'baz.com')
       expect(sourcePostMessage).toHaveBeenCalledTimes(2)
       expect(sourcePostMessage).toHaveBeenLastCalledWith(
         {
