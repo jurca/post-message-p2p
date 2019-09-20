@@ -143,7 +143,7 @@ export function listen(channel: unknown, origins: string[], messageListener: Mes
     }
 
     if ('data' in data) {
-      messageListener(data.data, source as IPostMessageImplementor, origin)
+      messageListener(data.data, source as IPostMessageImplementor, origin === 'null' ? '*' : origin)
     }
 
     (event.source as IPostMessageImplementor).postMessage({
