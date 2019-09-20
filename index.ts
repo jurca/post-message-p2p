@@ -24,8 +24,8 @@ export interface IAgentOptions extends IConnectOptions {
   onMessage(data: unknown): void
 }
 
-type Client = (data: unknown, transferable?: Transferable[]) => Promise<unknown>
-type MessageListener = (data: unknown) => void
+type Client = (data: unknown, transferable?: Transferable[]) => Promise<void>
+type MessageListener = (data: unknown, sender: IPostMessageImplementor, senderOrigin: string) => void
 
 const MIN_SAFE_INTEGER = (Number as any).MIN_SAFE_INTEGER || -9007199254740991
 const DEFAULT_MESSAGE_CONFIRMATION_TIMEOUT = 10_000 // milliseconds
@@ -143,7 +143,7 @@ export function listen(channel: unknown, origins: string[], messageListener: Mes
     }
 
     if ('data' in data) {
-      messageListener(data.data)
+      messageListener(data.data, source as IPostMessageImplementor, origin)
     }
 
     (event.source as IPostMessageImplementor).postMessage({
