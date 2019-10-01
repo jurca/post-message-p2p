@@ -1,7 +1,7 @@
 # post-message-p2p
 
 [![Build Status](https://travis-ci.org/jurca/post-message-p2p.svg?branch=master)](https://travis-ci.org/jurca/post-message-p2p)
-[![npm](https://img.shields.io/npm/v/@jurca/post-message-p2p.svg)](https://www.npmjs.com/package/@seznam/compose-react-refs)
+[![npm](https://img.shields.io/npm/v/@jurca/post-message-p2p.svg)](https://www.npmjs.com/package/@jurca/post-message-p2p)
 [![License](https://img.shields.io/npm/l/@jurca/post-message-p2p.svg)](LICENSE)
 ![npm type definitions](https://img.shields.io/npm/types/@jurca/post-message-p2p.svg)
 
