@@ -141,9 +141,13 @@ export function listen(channel: unknown, origins: string[], messageListener: Mes
     if (!('handshake' in data) && !('data' in data)) {
       return
     }
+    
+    if (origin === 'null') {
+      origin = '*'
+    }
 
     if ('data' in data) {
-      messageListener(data.data, source as IPostMessageImplementor, origin === 'null' ? '*' : origin)
+      messageListener(data.data, source as IPostMessageImplementor, origin)
     }
 
     (event.source as IPostMessageImplementor).postMessage({
