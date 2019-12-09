@@ -141,7 +141,7 @@ export function listen(channel: unknown, origins: string[], messageListener: Mes
     if (!('handshake' in data) && !('data' in data)) {
       return
     }
-    
+
     if (origin === 'null') {
       origin = '*'
     }
