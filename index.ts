@@ -142,19 +142,17 @@ export function listen(channel: unknown, origins: string[], messageListener: Mes
       return
     }
 
-    if (origin === 'null') {
-      origin = '*'
-    }
+    const postOrigin = origin === 'null' ? '*' : origin;
 
     if ('data' in data) {
-      messageListener(data.data, source as IPostMessageImplementor, origin)
+      messageListener(data.data, source as IPostMessageImplementor, postOrigin)
     }
 
     (event.source as IPostMessageImplementor).postMessage({
       channel,
       messageId: data.messageId,
       received: true,
-    }, origin)
+    }, postOrigin)
   })
 }
 
