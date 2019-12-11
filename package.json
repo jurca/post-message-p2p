@@ -25,6 +25,12 @@
     "json"
   ],
   "author": "Martin Jurča <martin.jurca@firma.seznam.cz>",
+  "contributors": [
+    {
+      "name": "Thomas Hooper",
+      "url": "https://github.com/tdhooper"
+    }
+  ],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/jurca/post-message-p2p/issues"
