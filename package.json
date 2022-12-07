@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/jurca/post-message-p2p#readme",
   "devDependencies": {
-    "@stryker-mutator/core": "^2.1.0",
+    "@stryker-mutator/core": "^6.3.0",
     "@stryker-mutator/html-reporter": "^2.1.0",
     "@stryker-mutator/jest-runner": "^2.1.0",
     "@stryker-mutator/typescript": "^2.1.0",
