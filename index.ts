@@ -156,7 +156,7 @@ export function listen(channel: unknown, origins: string[], messageListener: Mes
   })
 }
 
-addEventListener('message', (event: MessageEvent) => {
+export function onMessageDeliveryConfirmation(event: MessageEvent) {
   const {data, origin, source} = event
   if (
     !data ||
@@ -177,4 +177,8 @@ addEventListener('message', (event: MessageEvent) => {
   }
 
   callbackInfo.callback()
-})
+}
+
+if (typeof addEventListener === 'function') {
+  addEventListener('message', onMessageDeliveryConfirmation)
+}
